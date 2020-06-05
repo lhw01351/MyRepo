@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout::site-head">
+    <link rel="stylesheet" href="../static/css/modal.css" th:href="@{../css/modal.css}"> <!--modal css 가지고오는 부분-->
+    <title>자전거 추가(관리자용)</title>
+</head>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+<!--추후 관리자만 접근 가능하도록 기능 구현-->
+<div style="margin-top: 10px;">
+    <h3 style="text-align: center;">자전거 추가(관리자용)</h3>
+    <div class="container row" style="margin: 0 auto; display: table;">
+        <button id="success_message" th:if="${successMessage}" class="btn btn-success" type="button"
+                style="display: block; margin: 0 auto; width: 100%;">
+            <p th:text="${successMessage}"></p>
+        </button>
+        <script th:inline="javascript" th:if="${successMessage}">
+            $("#success_message").fadeOut(5000,function () {}) //알아서 fade-out
+        </script>
+        <form onsubmit="return confirm('추가하시겠습니까?');" action="#" th:action="@{/bicycles/add}" th:object="${bicycle}" method="post">
+            <div class="form-group">
+                <label>자전거 기종</a></label>
+                <input type="text" id="input_model" th:field="*{bicycleModel}" th:class="${#fields.hasErrors('bicycleModel') ? 'form-control is-invalid' : 'form-control'}"/>
+                <div th:if="${#fields.hasErrors('bicycleModel')}" th:errors="*{bicycleModel}" class="invalid-feedback">자전거 기종을 입력하세요.</div>
+                <p id="alert_2_input_model" style="color: red; display: none;">자전거 기종을 입력하세요.</p>
+            </div>
+            <div class="form-group">
+                <label>주소: <a id="lets_get_the_address" style="font-weight: bold;">여기를 눌러서 주소와 좌표를 입력해주세요.</a></label><br>
+                <input type="text" id="input_address" th:field="*{bicycleAddress}" th:class="${#fields.hasErrors('bicycleAddress') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+                <div th:if="${#fields.hasErrors('bicycleAddress')}" th:errors="*{bicycleAddress}" class="invalid-feedback">대여소 주소를 입력하세요.</div>
+                <p id="alert_2_input_stand_address" style="color: red; display: none;">대여소 주소를 입력하세요.</p>
+            </div>
+            <div class="form-group">
+                <label>좌표(위도)</label> <!--최소값, 최대값은 남한 지역을 포괄하도록 설정-->
+                <input type="number" id="input_lat" step="0.000001" min="32.110000" max="38.620000" th:field="*{bicycleLatitude}" th:class="${#fields.hasErrors('bicycleLatitude') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+                <div th:if="${#fields.hasErrors('bicycleLatitude')}" th:errors="*{bicycleLatitude}" class="invalid-feedback"></div>
+            </div>
+            <div class="form-group">
+                <label>좌표(경도)</label> <!--최소값, 최대값은 남한 지역을 포괄하도록 설정-->
+                <input type="number" id="input_lon" step="0.000001" min="124.611000" max="131.900000" th:field="*{bicycleLongitude}" th:class="${#fields.hasErrors('bicycleLongitude') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+                <div th:if="${#fields.hasErrors('bicycleLongitude')}" th:errors="*{bicycleLongitude}" class="invalid-feedback"></div>
+            </div>
+            <div class="form-group">
+                <label>자전거 가격</label>
+                <input type="number" id="input_price" step="1" min="0" th:field="*{bicyclePrice}" th:class="${#fields.hasErrors('bicyclePrice') ? 'form-control is-invalid' : 'form-control'}"/>
+                <div th:if="${#fields.hasErrors('bicyclePrice')}" th:errors="*{bicyclePrice}" class="invalid-feedback">자전거 가격을 입력하세요.</div>
+                <p id="alert_2_input_price" style="color: red; display: none;">자전거 가격을 입력하세요.</p>
+                <p id="alert_2_input_correct_range" style="color: red; display: none;">자연수를 입력하세요.</p>
+            </div>
+            <div class="form-group" style="display: none;"> <!--display:none으로 안 보이게-->
+                <label>등록일시</label>
+                <input type="date" th:field="*{bicycleRegDate}" id="this_is_today"
+                       th:class="${#fields.hasErrors('bicycleRegDate') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+                <div th:if="${#fields.hasErrors('bicycleRegDate')}" th:errors="*{bicycleRegDate}" class="invalid-feedback"></div>
+            </div>
+            <script> /*javascript로 오늘 날짜 집어넣기 위한 부분*/
+            /*참고: https://stackoverflow.com/questions/6982692/how-to-set-input-type-dates-default-value-to-today*/
+            Date.prototype.toDateInputValue = (function() {
+                var local = new Date(this);
+                local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+                return local.toJSON().slice(0,10);
+            });
+            $(document).ready(function () {
+                $('#this_is_today').val(new Date().toDateInputValue());
+            })
+            </script>
+            <div class="form-group clearfix">
+                <button type="submit" class="btn btn-primary float-right" id="check_the_input" style="display: none;">자전거 추가</button>
+                <a href="/bicycles/list" class="btn btn-default" style="float: left;">자전거 목록으로 이동</a>
+            </div><!-- Submit Button -->
+            <!--중복/미입력 여부 점검. 그리고 모든 값이 다 입력되었을 때 '자전거 추가'버튼 출력-->
+            <script>
+                $(document).ready(function () {
+                    $("#input_model").keyup(function () { //자전거 기종 입력 안 되었을때 알림(키보드 값 입력될 때)
+                        if($(this).val().length==0){$("#alert_2_input_model").css("display","inline");}
+                        else{$("#alert_2_input_model").css("display","none");}
+                    })
+                    $("#input_price").keyup(function () { //자전거 가격이 입력 안 되었거나 숫자 범위가 안 맞을 때 알림 (키보드 값 입력시)
+                        //1. 값이 입력되지 않았을 때
+                        if($(this).val().length==0||$(this).val()==0){$("#alert_2_input_price").css("display","inline");}
+                        else{$("#alert_2_input_price").css("display","none");}
+                        //2. 입력한 값이 음수일 때, 그리고 소수점 이하의 값이 입력되었을 때
+                        if($(this).val()<1||$(this).val()%1!=0){$("#alert_2_input_correct_range").css("display","inline");}
+                        else{$("#alert_2_input_correct_range").css("display","none");}
+                    })
+                    $("#input_price").click(function () { //자전거 가격이 입력 안 되었거나 숫자 범위가 안 맞을 때 알림 (키보드 값 입력시)
+                        //1. 값이 입력되지 않았을 때
+                        if($(this).val().length==0||$(this).val()==0){$("#alert_2_input_price").css("display","inline");}
+                        else{$("#alert_2_input_price").css("display","none");}
+                        //2. 입력한 값이 음수일 때, 그리고 소수점 이하의 값이 입력되었을 때
+                        if($(this).val()<1||$(this).val()%1!=0){$("#alert_2_input_correct_range").css("display","inline");}
+                        else{$("#alert_2_input_correct_range").css("display","none");}
+                    })
+                    $("#input_address").click(function () { //대여소 주소 입력 안 되었을때 알림
+                        if($(this).val().length==0){$("#alert_2_input_stand_address").css("display","inline");}
+                    })
+                    $("#lets_get_the_address").click(function () { //대여소 주소 입력 안 되었을때 알림
+                        if($("#input_address").val().length==0){$("#alert_2_input_stand_address").css("display","inline");}
+                    })
+
+                    $("#check_the_input").click(function () { //일부 값의 입력 없이 submit되었을 때 alert
+                        //1. 자전거 기종 입력 안 되었을때 알림
+                        if($("#input_model").val().length==0){alert("자전거 기종을 입력하세요.");}
+                        //2. 가격이 입력 안 되었거나, 입력 되었어도 범위나 숫자값이 안 맞을 때
+                        if($("#input_price").val()<1||$("#input_price").val()%1!=0)
+                        {alert("자연수를 입력하세요.");}
+                        //3. 대여소 주소 입력 안 되었을때 알림
+                        if($("#input_address").val().length==0){alert("대여소 주소를 입력하세요.");}
+                    })
+
+                    $(document).change(function () {
+                        if($("#input_model").val().length!=0&&
+                            $("#input_price").val().length!=0&&$("#input_price").val()!=0&&$("#input_address").val().length!=0&&
+                            $("#input_price").val()>=1&&$("#input_price").val()%1==0){
+                            $("#check_the_input").css("display","inline");
+                        }
+                        else{
+                            $("#check_the_input").css("display","none");
+                        }
+                    })
+                })
+            </script>
+        </form>
+    </div>
+    <!-- 발급받은 APP KEY를 입력! javascript key가 입력되어야 한다. 반드시 실행 코드보다 먼저 선언 -->
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ce16656897a19f1f12eccf179ee53bad&libraries=services"></script>
+    <script>
+        $(document).ready(function () {
+            $("#lets_get_the_address").click(function () {
+                var address=""; //입력할 주소값
+                var newlat =0; //입력할 위도값
+                var newlon =0; //입력할 경도값
+
+                // Get the modal. modal로 검색 결과를 나열하는 목록을 출력. 1개든 몇개든..
+                var modal = document.getElementById("myModal");
+                // Get the button that opens the modal
+                var btn = document.getElementById("letssearch");
+                // Get the <span> element that closes the modal
+                var span = document.getElementsByClassName("close")[0];
+                // When the user clicks on the button, open the modal
+                modal.style.display = "block";
+                // When the user clicks on <span> (x), close the modal
+                span.onclick = function() {
+                    modal.style.display = "none";
+                }
+                function close_the_modal(){
+                    modal.style.display = "none";
+                }
+                // When the user clicks anywhere outside of the modal, close it
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                }
+                var get_html="<div><h5 style='text-align: center;'>지도 위의 임의의 지점을 선택하시면 주소와 좌표를 불러옵니다.</h5></div>";
+                $("#show_the_map").html(get_html);
+
+                var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+                    mapOption = {
+                        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
+                        level: 2 // 지도의 확대 레벨
+                    };
+                // 지도를 생성합니다
+                var map = new kakao.maps.Map(mapContainer, mapOption);
+                // 주소-좌표 변환 객체를 생성합니다
+                var geocoder = new kakao.maps.services.Geocoder();
+
+                var marker = new kakao.maps.Marker(), // 클릭한 위치를 표시할 마커입니다
+                    infowindow = new kakao.maps.InfoWindow({zindex:1}); // 클릭한 위치에 대한 주소를 표시할 인포윈도우입니다
+
+                // 지도를 클릭했을 때 클릭 위치 좌표에 대한 주소정보를 표시하도록 이벤트를 등록합니다
+                kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+                    searchDetailAddrFromCoords(mouseEvent.latLng, function(result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            newlat = mouseEvent.latLng.getLat();
+                            newlon = mouseEvent.latLng.getLng();
+                            address = result[0].address.address_name;
+                            var content = '<div class="container align-items-center" style="width: 100%; height: 220px; text-align: center;"><table class="table">'
+                                +'<thead>'
+                                +'<tr>'
+                                +'<th scope="col" style="text-align: center;">주소</th>'
+                                +'<th scope="col" style="text-align: center;">위도</th>'
+                                +'<th scope="col" style="text-align: center;">경도</th>'
+                                +'</tr>'
+                                +'</thead>'
+                                +'<tbody style="text-align: center;">'
+                                +'<td>'+address+'</td>'
+                                +'<td>'+newlat+'</td>'
+                                +'<td>'+newlon+'</td>'
+                                +'</tbody>'
+                                +'</table>'
+                                +'<button id="input_them" type="button" class="btn btn-primary" style="margin-right: 5px;">입력하기</button>'
+                                +'<button id="lets_close" type="button" class="btn btn-light">닫기</button>'
+                                +'</div>';
+
+                            // 마커를 클릭한 위치에 표시합니다
+                            marker.setPosition(mouseEvent.latLng);
+                            marker.setMap(map);
+
+                            // 인포윈도우에 클릭한 위치에 대한 법정동 상세 주소정보를 표시합니다
+                            infowindow.setContent(content);
+                            infowindow.open(map, marker);
+
+                            $("#input_them").click(function () {//주소, 좌표 입력하는 함수 구현
+                                $("#input_address").val(address);
+                                $("#input_lat").val(newlat);
+                                $("#input_lon").val(newlon);
+                                modal.style.display = "none";
+                                $("#alert_2_input_stand_address").css("display","none"); //버튼을 누르면, 즉 주소 위도 경도값이 입력되면, 주소를 입력하라는 메시지가 안보임.
+                            })
+                            $("#lets_close").click(function () { //닫기 버튼 누르면 infowindow가 닫힘
+                                infowindow.close();
+                            })
+                        }
+                    });
+                });
+
+                function searchDetailAddrFromCoords(coords, callback) {
+                    // 좌표로 법정동 상세 주소 정보를 요청합니다
+                    geocoder.coord2Address(coords.getLng(), coords.getLat(), callback);
+                }
+            })
+        })
+    </script>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="show_the_map">내용 구현</p>
+            <div id="map" style="height: 500px;">지도</div>
+        </div>
+    </div>
+</div>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+</html>

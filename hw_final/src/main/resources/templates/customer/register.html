@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="layout::site-head">
+	<meta charset="UTF-8" />
+	<title>Login</title>
+</head>
+<script type="text/javascript">
+
+
+	<!--비밀번호 체크-->
+
+	$(function(){
+
+		$("#alert-success").hide();
+		$("#alert-danger").hide();
+		$("#rental-alert-success").hide();
+		$("#rental-alert-danger").hide();
+		$("#tel-alert-success").hide();
+		$("#tel-alert-danger").hide();
+		$("#name-alert-success").hide();
+		$("#name-alert-danger").hide();
+		$("#id-alert-success").hide();
+		$("#id-alert-danger").hide();
+
+		$("input").keyup(function(){
+
+			var pwd1=$("#customer_login_password").val();
+			var pwd2=$("#customer_login_password_check").val();
+			var rental=$("#rental_password").val();
+			var tel=$("#phoneNum").val();
+			var name=$("#customer_name").val();
+			var id=$("#customerId").val();
+
+
+			if(pwd1 != "" || pwd2 != ""){
+				if(pwd1 == pwd2){
+					$("#alert-success").show()
+					$("#alert-danger").hide();
+					$("#submit").removeAttr("disabled");
+				}else{
+					$("#alert-success").hide();
+					$("#alert-danger").show();
+					$("#submit").attr("disabled", "disabled");
+				}
+			}
+
+			if(rental != ""){
+				if(rental.length >= 4 && rental.length <= 4){
+					$("#rental-alert-success").show()
+					$("#rental-alert-danger").hide();
+
+					$("#submit").removeAttr("disabled");
+
+				}else{
+
+					$("#rental-alert-success").hide();
+					$("#rental-alert-danger").show();
+
+					$("#submit").attr("disabled", "disabled");
+				}
+			}
+
+			if(tel != ""){
+				if(tel.length >=10 && tel.length <=12){
+					$("#tel-alert-success").show()
+					$("#tel-alert-danger").hide();
+
+					$("#submit").removeAttr("disabled");
+				}else{
+
+					$("#tel-alert-success").hide();
+					$("#tel-alert-danger").show();
+
+					$("#submit").attr("disabled", "disabled");
+				}
+			}
+			if(name != ""){
+				if(name.length >=2 && name.length <=6){
+					$("#name-alert-success").show();
+					$("#name-alert-danger").hide();
+
+					$("#submit").removeAttr("disabled");
+				}else{
+
+					$("#name-alert-success").hide();
+					$("#name-alert-danger").show();
+
+					$("#submit").attr("disabled","disabled");
+				}
+			}
+			if(id != ""){
+				if(id.length >=5 && id.length <=15){
+					$("#id-alert-success").show();
+					$("#id-alert-danger").hide();
+
+					$("#submit").removeAttr("disabled");
+				}else{
+					$("#id-alert-success").hide();
+					$("#id-alert-danger").show();
+					$("#submit").removeAttr("disabled");
+				}
+			}
+		});
+	});
+
+	<!--생년월일을 위한 JQuery-->
+
+	$(function() {
+
+		//populate our years select box
+
+		for (i = new Date().getFullYear(); i > 1900; i--){
+			$('#years').append($('<option />').val(i).html(i));
+		}
+
+		//populate our months select box
+		for (i = 1; i < 13; i++){
+			$('#months').append($('<option />').val(i).html(i));
+		}
+
+		//populate our Days select box
+		updateNumberOfDays();
+
+		//"listen" for change events
+		$('#years, #months').change(function(){
+			updateNumberOfDays();
+		});
+
+	});
+
+	//function to update the days based on the current values of month and year
+	function updateNumberOfDays(){
+
+		$('#days').html('');
+		month = $('#months').val();
+		year = $('#years').val();
+		days = daysInMonth(month, year);
+
+		for(i=1; i < days+1 ; i++){
+			$('#days').append($('<option />').val(i).html(i));
+		}
+	}
+
+	//helper function
+	function daysInMonth(month, year) {
+		return new Date(year, month, 0).getDate();
+	}
+
+
+
+</script>
+<style>
+	#test_btn1{
+		border-top-left-radius: 5px;
+		border-bottom-left-radius: 5px;
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+		margin-right:-4px;
+	}
+	#test_btn2{
+		border-top-left-radius: 5px;
+		border-bottom-left-radius: 5px;
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+		margin-left:-4px;
+	}
+	#btn_group button{
+		border: 1px solid silver;
+		background-color: rgba(120,100%,75%,0.3);
+		color: black; padding: 10px;
+	}
+	#btn_group button:hover{
+		color:white;
+		background-color: gray;
+	}
+</style>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+<div style="position:relative; left:37%; top:30%; width:55%">
+<br>
+<u><h2> 회원가입 </h2></u>
+<br>
+<div class="container row">
+	<form action="#" onsubmit="return confirm('가입하시겠습니까?');" th:action="@{/customer/register}" th:object="${customers}" method="post" class="form col-md-5 col-md-offset-7">
+		<div class="form-group" id="successful_registration">
+			<div th:class="${successMessage} ? 'alert alert-success' : ''" th:text="${successMessage}"><a href="/"></a></div>
+		</div>
+		<script th:inline="javascript" th:if="${successMessage}">
+			$("#successful_registration").fadeOut(5000,function () {}) //알아서 fade-out
+		</script>
+		<div class="form-group">
+			아이디<input type="text" th:field="*{customerId}" placeholder="Customer Id" th:class="${#fields.hasErrors('customerId') ? 'form-control is-invalid' : 'form-control'}" />
+			<div th:if="${#fields.hasErrors('customerId')}" th:errors="*{customerId}" class="invalid-feedback"></div>
+		</div><!-- User Id -->
+		<div class="alert alert-success" id="id-alert-success">OK!</div>
+		<div class="alert alert-danger" id="id-alert-danger">아이디는 공백없이 5~15자로 입력해주세요.</div>
+		<hr style="border: dashed 0.5px silver;">
+		<div class="form-group">
+			비밀번호 : <input type="password" th:field="*{customer_login_password}" placeholder="Password" th:class="${#fields.hasErrors('customer_login_password') ? 'form-control is-invalid' : 'form-control'}" />
+			<div th:if="${#fields.hasErrors('customer_login_password')}" th:errors="*{customer_login_password}" class="invalid-feedback"></div>
+		</div><!-- Password -->
+		<div class="form-group">
+			비밀번호 확인<input type="password" th:field="*{customer_login_password_check}" placeholder="PasswordCheck" th:class="${#fields.hasErrors('customer_login_password_check') ? 'form-control is-invalid' : 'form-control'}" />
+			<div th:if="${#fields.hasErrors('customer_login_password_check')}" th:errors="*{customer_login_password}" class="invalid-feedback"></div>
+		</div><!-- Password -->
+		<div class="alert alert-success" id="alert-success">비밀번호가 일치합니다.</div>
+		<div class="alert alert-danger" id="alert-danger">비밀번호가 일치하지 않습니다.</div>
+		<hr style="border: dashed 0.5px silver;">
+
+		<div class="form-group">
+			이름<input type="text" th:field="*{customer_name}" placeholder="Full Name" th:class="${#fields.hasErrors('customer_name') ? 'form-control is-invalid' : 'form-control'}" />
+			<label th:if="${#fields.hasErrors('customer_name')}" th:errors="*{customer_name}" class="invalid-feedback"></label>
+		</div>
+		<div class="alert alert-success" id="name-alert-success">OK!</div>
+		<div class="alert alert-danger" id="name-alert-danger">이름을 공백없이 2~6자로 입력해주세요.</div>
+
+		<hr style="border: dashed 0.5px silver;">
+
+		생년월일
+		<div class="form-group">
+			<select id="years" th:field="*{years}"></select>년도 &nbsp;&nbsp;
+			<select id="months" th:field="*{months}"></select>월 &nbsp;&nbsp;&nbsp;
+			<select id="days" th:field="*{days}"></select>일
+		</div>
+		<hr style="border: dashed 0.5px silver;">
+
+		<div class="form-group">
+			이메일<input type="email" th:field="*{customerEmail}" placeholder="User Email" th:class="${#fields.hasErrors('customerEmail') ? 'form-control is-invalid' : 'form-control'}" />
+			<div th:if="${#fields.hasErrors('customerEmail')}" th:errors="*{customerEmail}" class="invalid-feedback"></div>
+		</div>
+		<hr style="border: dashed 0.5px silver;">
+		<div class="form-group">
+			전화번호<input type="text" th:field="*{phoneNum}" placeholder="Phone Number" th:class="${#fields.hasErrors('phoneNum') ? 'form-control is-invalid' : 'form-control'}" />
+			<div th:if="${#fields.hasErrors('phoneNum')}" th:errors="*{phoneNum}" class="invalid-feedback"></div>
+		</div>
+		<div class="alert alert-success" id="tel-alert-success">OK!</div>
+		<div class="alert alert-danger" id="tel-alert-danger">전화 번호는 *지역번호 포함 10~12자로 입력해주세요</div>
+
+		<hr style="border: dashed 0.5px silver;">
+		<div class="form-group">
+			대여비밀번호<input type="password" th:field="*{rental_password}" placeholder="Rental_password" th:class="${#fields.hasErrors('rental_password') ? 'form-control is-invalid' : 'form-control'}" />
+			<div th:if="${#fields.hasErrors('rental_password')}" th:errors="*{rental_password}" class="invalid-feedback"></div>
+		</div>
+		<div class="alert alert-success" id="rental-alert-success">OK!</div>
+		<div class="alert alert-danger" id="rental-alert-danger">대여 비밀번호는 4글자입니다.</div>
+
+		<br>
+		<right>
+			<div id="btn_group">
+				<button type="submit" id="test_btn1">회원 가입</button>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<a href ="/"><button type="button" class="test_btn2">홈으로</button></a>
+			</div>
+		</right>
+		<br>
+	</form>
+</div>
+</div>
+
+<footer th:replace="layout::site-footer"></footer>
+</body>
+
+</html>

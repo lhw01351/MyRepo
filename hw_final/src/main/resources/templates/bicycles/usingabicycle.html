@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout::site-head">
+    <title>자전거 대여 현황</title>
+    <style>
+        table tbody tr th, table tbody tr td{
+            text-align: center;
+        }
+        #submit_area{
+            width: 100%;
+            position: relative;
+            text-align: center;
+        }
+        #submit_area button{
+            display: inline-block;
+            margin:0 auto;
+            justify-content:center;
+        }
+    </style>
+</head>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+    <div style="margin-bottom: 10px;">
+        <h1 style="text-align: center; margin-top: 10px;">자전거 대여 현황</h1><br>
+        <h3 th:if="${rent.usingNow==false}" style="text-align: center; color: red;">해당 건은 종료되었습니다.</h3>
+        <h4 th:if="${rent.usingNow==false}" style="text-align: center; text-decoration: underline;">
+            <a href="/bicycles/map">여기를 누르시면<br>자전거 대여 페이지로 이동합니다.</a></h4>
+        <div class="table-responsive" style="margin-top: 10px;">
+            <table class="table table-hover" style="text-align: center;">
+                <tbody>
+                <tr>
+                    <th scope="row">대여 식별번호</th>
+                    <td th:text="${rent.bicycleRentId}"></td>
+                </tr>
+                <tr>
+                    <th scope="row">자전거 번호</th>
+                    <td th:text="${rent.bicycle.bicycleId}"></td>
+                </tr>
+                <tr>
+                    <th >대여 시작 시각</th>
+                    <td th:text="${#dates.format(rent.rentDateTime, 'yyyy-MM-dd HH:mm')}"></td>
+                </tr>
+                <tr th:if="${rent.usingNow==false}">
+                    <th scope="row">대여 종료 시각</th>
+                    <td th:text="${#dates.format(rent.returnDateTime, 'yyyy-MM-dd HH:mm')}"></td>
+                </tr>
+                <tr th:if="${rent.usingNow==true}">
+                    <th scope="row">현재까지의 대여 시간</th>
+                    <td id="get_the_difference1">
+                        <!--현재 시각 구하기.
+                         참고: https://tecadmin.net/get-current-date-time-javascript/
+                         https://stackoverflow.com/questions/3224834/get-difference-between-2-dates-in-javascript
+                         https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+                         -->
+                        <script th:inline="javascript">
+                            $(document).ready(function () {
+                                var rentDT = [[${rent.rentDateTime}]]; //대여 시작 시각 받아오기
+                                var rentStartTime = new Date(rentDT); //시간단위 변환
+                                var now = new Date(); //현재 시각
+                                var diff = Math.abs(now-rentStartTime); //대여 시작 시각과 현재 시각의 차이
+                                $("#input_rent_period").val((diff/60000)-(diff/60000)%1); //분 단위 값을 입력
+                                //1 min = 60000ms
+                                //1 hour = 3600000ms
+                                //분 단위 이하 절삭
+                                if(diff/(60000*60)<1){//대여시간이 한시간 미만
+                                    var getMinute = (diff/60000)-(diff/60000)%1; //분 단위 값 얻기
+                                    var txt = getMinute+"분";
+                                    $("#get_the_difference1").html(txt);
+                                }
+                                else{//대여시간이 한시간 이상
+                                    var getHour = (diff/3600000)-(diff/3600000)%1; //시간 단위 값 얻기
+                                    //분 단위 값 얻기
+                                    var remainder = diff%3600000; //일단 한시간으로 나눈 나머지 구하기
+                                    var getMinute = ((remainder/60000)-(remainder/60000)%1); //소수점 이하 제거
+                                    var txt = getHour+"시간 "+getMinute+"분";
+                                    $("#get_the_difference1").html(txt);
+                                }
+                            })
+                        </script>
+                    </td>
+                </tr>
+                <tr th:if="${rent.usingNow==false}">
+                    <th scope="row">최종 대여 시간</th>
+                    <td th:text="${rent.rentPeriod}+'분'">최종 대여 시간</td>
+                </tr>
+                <tr th:if="${rent.usingNow==true}">
+                    <th>현재까지의 대여비용(원)</th>
+                    <td id="get_the_price1">
+                        <script th:inline="javascript">
+                            $(document).ready(function () {
+                                var rentDT = [[${rent.rentDateTime}]];
+                                var rentStartTime = new Date(rentDT);
+                                var now = new Date();
+                                var diff = Math.abs(now-rentStartTime);
+                                //밀리초를 시간단위로 변환. 나머지 제거하여 몫만 받아 일단
+                                var diff_hours = diff/(60000*60)-(diff/(60000*60)%1);
+                                var get_price = (diff_hours+1)*2000; //시간당 2천원
+                                $("#get_the_price1").html(get_price); //표에 집어넣기
+                                $("#input_rent_price").val(get_price); //input tag에 집어넣기
+                                document.getElementById("get_the_price1").innerHTML = get_price.toLocaleString(); //1000단위마다 , 추가
+                                //참고: https://stackoverflow.com/questions/1990512/add-comma-to-numbers-every-three-digits
+                            })
+                        </script>
+                    </td>
+                </tr>
+                <tr th:if="${rent.usingNow==false}">
+                    <th scope="row">최종 대여비용(원)</th>
+                    <td id="final_price1" th:text="${rent.rentPrice}">
+                        최종 대여 비용
+                    </td>
+                    <script>
+                        /*숫자에 , 를 더하기 위한 함수
+                        참고 링크: https://stackoverflow.com/questions/1990512/add-comma-to-numbers-every-three-digits */
+                        function addCommas(nStr) {
+                            nStr += '';
+                            x = nStr.split('.');
+                            x1 = x[0];
+                            x2 = x.length > 1 ? '.' + x[1] : '';
+                            var rgx = /(\d+)(\d{3})/;
+                            while (rgx.test(x1)) {
+                                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+                            }
+                            return x1 + x2;
+                        }
+                        $(document).ready(function () {
+                            var temp = $("#final_price1").html();
+                            var xxx = addCommas(temp);
+                            document.getElementById("final_price1").innerHTML = xxx.toLocaleString(); //1000단위마다 , 추가
+                        })
+                    </script>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <form action="#" th:action="@{/bicycles/rent/{path}(path=${rent.bicycleRentId})}"
+              th:object="${rent}" method="post"  th:if="${rent.usingNow==true}">
+            <!--이 script 구문은, 반납시 반납할지의 여부를 묻고, 확인을 누르면 반납되었다는 메시지를 띄운다.-->
+            <!--참고 링크: http://b.redinfo.co.kr/43-->
+            <script>
+                $(document).ready(function () {
+                    $('form').submit(function () {
+                        var check = confirm("반납하시겠습니까?");
+                        if(check==true){alert("성공적으로 반납하셨습니다.");}
+                        return check;
+                    })
+                })
+            </script>
+            <div class="form-group" style="display: none;">
+                <label>자전거 대여 기간(to be invisible)</label> <!--display:none으로 안 보이게-->
+                <input type="text" id="input_rent_period" th:field="*{rentPeriod}" th:class="${#fields.hasErrors('rentPeriod') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+                <div th:if="${#fields.hasErrors('rentPeriod')}" th:errors="*{rentPeriod}" class="invalid-feedback">자전거 기종을 입력하세요.</div>
+                <p id="alert_2_input_rent_period" style="color: red; display: none;">자전거 식별번호를 입력하세요.</p>
+            </div>
+            <div class="form-group" style="display: none;"> <!--display:none으로 안 보이게-->
+                <label>반납일시(to be invisible)</label>
+                <input type="datetime-local" th:field="*{returnDateTime}" id="rent_date_time"
+                       th:class="${#fields.hasErrors('returnDateTime') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+                <div th:if="${#fields.hasErrors('returnDateTime')}" th:errors="*{returnDateTime}" class="invalid-feedback"></div>
+                <!--        현재시간 자동입력..-->
+                <script>
+                    //Function found here: https://gist.github.com/ryanburnette/8803238
+                    //source: https://stackoverflow.com/questions/24468518/html5-input-datetime-local-default-value-of-today-and-current-time
+                    $(document).ready(function () {
+                        var now = new Date($.now())
+                            , year
+                            , month
+                            , date
+                            , hours
+                            , minutes
+                            //, seconds
+                            , formattedDateTime
+                        ;
+                        year = now.getFullYear();
+                        month = now.getMonth().toString().length === 1 ? '0' + (now.getMonth() + 1).toString() : now.getMonth() + 1;
+                        date = now.getDate().toString().length === 1 ? '0' + (now.getDate()).toString() : now.getDate();
+                        hours = now.getHours().toString().length === 1 ? '0' + now.getHours().toString() : now.getHours();
+                        minutes = now.getMinutes().toString().length === 1 ? '0' + now.getMinutes().toString() : now.getMinutes();
+                        formattedDateTime = year + '-' + month + '-' + date + 'T' + hours + ':' + minutes;
+                        console.log(formattedDateTime);
+                        $("#rent_date_time").val(formattedDateTime);
+                    })
+                </script>
+            </div>
+            <div class="form-group" style="display: none;">
+                <label>총 대여 비용(to be invisible)</label> <!--display:none으로 안 보이게-->
+                <input type="text" id="input_rent_price" th:field="*{rentPrice}" th:class="${#fields.hasErrors('rentPrice') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+                <div th:if="${#fields.hasErrors('rentPrice')}" th:errors="*{rentPrice}" class="invalid-feedback">자전거 기종을 입력하세요.</div>
+                <p id="alert_2_input_rent_price" style="color: red; display: none;">자전거 식별번호를 입력하세요.</p>
+            </div>
+            <div class="form-group" style="display: none;"> <!--display:none으로 안 보이게-->
+                <label>대여여부 변경(to be invisible)</label>
+                <input type="checkbox" th:field="*{usingNow}" id="using_now"
+                       th:class="${#fields.hasErrors('usingNow') ? 'form-control is-invalid' : 'form-control'}"/>
+                <div th:if="${#fields.hasErrors('usingNow')}" th:errors="*{usingNow}" class="invalid-feedback"></div>
+                <!--            대여여부가 false로 자동으로 check 되어있도록 함-->
+                <script>
+                    $("#using_now").prop('checked',false);
+                </script>
+            </div>
+            <div class="form-group clearfix" id="submit_area">
+                <button type="submit" class="btn btn-primary" id="check_the_input"
+                        style="border: 1px grey solid; border-radius: 5px; position: relative; display: block; margin: 10px auto;">
+                    반납
+                </button>
+            </div><!-- Submit Button -->
+        </form>
+    </div>
+    <footer th:replace="layout::site-footer"></footer>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head th:replace="layout::site-head">
+	<meta charset="UTF-8">
+	<title>공지 게시물 등록</title>
+</head>
+<script>
+Date.prototype.toDateInputValue = (function() {
+var local = new Date(this);
+local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+return local.toJSON().slice(0,10);
+});
+$(document).ready(function () {
+$('#this_is_today').val(new Date().toDateInputValue());
+})
+</script>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+<div style="position:relative; left:37%; top:30%; width:100%; margin-top: 10px;">
+	<h2>공지 게시물 작성(관리자용)</h2>
+	<div class="container row">
+		<form action="#" onsubmit="return confirm('등록하시겠습니까?');" th:action="@{/notice/create}" th:object="${notice}" method="post" class="form col-md-5 col-md-offset-7">
+			<div class="form-group">
+				<label> 제목 </label>
+				<input type="hidden" th:field="*{id}"/>
+				<input type="hidden" th:field="*{customers}"/>
+				<input type="text" th:field="*{title}" th:class="${#fields.hasErrors('title') ? 'form-control is-invalid' : 'form-control'}" />
+				<div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="invalid-feedback"></div>
+			</div><!-- Post Title -->
+			<div class="form-group">
+				<label> 내용 </label>
+				<textarea rows="5" cols="10" th:field="*{content}" th:class="${#fields.hasErrors('content') ? 'form-control is-invalid' : 'form-control'}" ></textarea>
+				<div th:if="${#fields.hasErrors('content')}" th:errors="*{content}" class="invalid-feedback"></div>
+			</div><!-- Post Content -->
+			<div class="form-group" style="display: none;"> <!--display:none으로 안 보이게-->
+				<label>등록일시</label>
+				<input type="date" th:field="*{regDate}" id="this_is_today" th:class="${#fields.hasErrors('regDate') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+				<div th:if="${#fields.hasErrors('regDate')}" th:errors="*{regDate}" class="invalid-feedback"></div>
+			</div>
+			<div class="form-group" style="display: none;"> <!--display:none으로 안 보이게-->
+				<label>수정일시 </label>
+				<input type="date" th:field="*{updateDate}"
+					   th:class="${#fields.hasErrors('updateDate') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+				<div th:if="${#fields.hasErrors('updateDate')}" th:errors="*{updateDate}" class="invalid-feedback"></div>
+			</div>
+			<div class="form-group clearfix">
+				<button type="submit" class="btn btn-primary float-right">게시물 작성</button>
+			</div><!-- Submit Button -->
+			<div class="form-group">
+				<div th:class="${successMessage} ? 'alert alert-success' : ''" th:text="${successMessage}"></div>
+			</div><!-- Success message -->
+		</form>
+	</div>
+</div>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+</html>

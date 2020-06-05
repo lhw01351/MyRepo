@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.w3.org/1999/xhtml">
+<head th:replace="layout::site-head">
+    <title>자전거 대여하기</title>
+</head>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+    <form action="#" th:action="@{/bicycles/rent}" th:object="${rent}" method="post" style="margin: 5% 5% 5% 5%; text-align: center;">
+        <!--이 script 구문은, 대여시 대여할지의 여부를 묻고, 확인을 누르면 대여되었다는 메시지를 띄운다.-->
+        <!--참고 링크: http://b.redinfo.co.kr/43-->
+        <script>
+            $(document).ready(function () {
+                $('form').submit(function () {
+                    var check = confirm("대여하시겠습니까?");
+                    if(check==true){alert("성공적으로 대여하셨습니다.");}
+                    return check;
+                })
+            })
+        </script>
+        <div class="form-group">
+            <label>자전거 식별번호</label>
+            <select class="form-control" id="select_bicycle_id">
+                <option value="0">자전거를 선택하세요.</option>
+                <option th:value="${b.bicycleId}" th:each="b:${bicycle}" th:utext="${b.bicycleId}"></option>
+            </select>
+<!--            선택된 값이 #input_bicycle_id 로 입력되게끔 하는 script-->
+            <script>
+                $(document).ready(function(){
+                    $("select#select_bicycle_id").change(function(){
+                        var selectedOne = $(this).children("option:selected").val();
+                        $("#input_bicycle_id").val(selectedOne);
+                        if(selectedOne!=0){$("#submit_area").css("display","inline");}
+                        if(selectedOne==0){$("#submit_area").css("display","none");}
+                    });
+                });
+            </script>
+            <input type="text" id="input_bicycle_id" th:field="*{bicycle.bicycleId}" th:class="${#fields.hasErrors('bicycle.bicycleId') ? 'form-control is-invalid' : 'form-control'}" style="display: none;" readonly/>
+            <div th:if="${#fields.hasErrors('bicycle.bicycleId')}" th:errors="*{bicycle.bicycleId}" class="invalid-feedback">자전거 기종을 입력하세요.</div>
+            <p id="alert_2_input_bicycle_id" style="color: red; display: none;">자전거 식별번호를 입력하세요.</p>
+        </div>
+        <div class="form-group" style="display: none;">
+            <label>회원 ID(Long)(to be invisible)</label>
+            <input type="text" id="input_customer_long_id" th:field="*{customer.id}" th:class="${#fields.hasErrors('customer.id') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+            <div th:if="${#fields.hasErrors('customer.id')}" th:errors="*{customer.id}" class="invalid-feedback">자전거 기종을 입력하세요.</div>
+            <p id="get_cid" sec:authentication="name"></p>
+            <table>
+                <tr th:each="c:${customer}">
+                    <td th:text="${c.id}"></td>
+                    <td th:text="${c.customerId}"></td>
+                </tr>
+            </table>
+            <script>
+                $(document).ready(function () {
+                    /*table 의 data를 배열에 집어넣기
+                    참고한 곳 :https://stackoverflow.com/questions/4349952/html-table-data-into-arrays-via-jquery*/
+                    var data = Array();
+                    $("table tr").each(function(i, v){
+                        data[i] = Array();
+                        $(this).children('td').each(function(ii, vv){
+                            data[i][ii] = $(this).text();
+                        });
+                    })
+                    var getId = $("#get_cid").text();
+                    for(var i=0;i<data.length;i++){
+                        if(data[i][1]==getId){;
+                            $("#input_customer_long_id").val(data[i][0]);
+                            $("#input_customer_id").val(data[i][1]);
+                        }
+                    }
+                })
+            </script>
+        </div>
+        <div class="form-group" style="display: none;"> <!--display:none으로 안 보이게-->
+            <label>대여시작일시(to be invisible)</label>
+            <input type="datetime-local" th:field="*{rentDateTime}" id="rent_date_time"
+                   th:class="${#fields.hasErrors('rentDateTime') ? 'form-control is-invalid' : 'form-control'}" readonly/>
+            <div th:if="${#fields.hasErrors('rentDateTime')}" th:errors="*{rentDateTime}" class="invalid-feedback"></div>
+            <!--        현재시간 자동입력..-->
+            <script>
+                //Function found here: https://gist.github.com/ryanburnette/8803238
+                //source: https://stackoverflow.com/questions/24468518/html5-input-datetime-local-default-value-of-today-and-current-time
+                $(document).ready(function () {
+                    var now = new Date($.now())
+                        , year
+                        , month
+                        , date
+                        , hours
+                        , minutes
+                        //, seconds
+                        , formattedDateTime
+                    ;
+                    year = now.getFullYear();
+                    month = now.getMonth().toString().length === 1 ? '0' + (now.getMonth() + 1).toString() : now.getMonth() + 1;
+                    date = now.getDate().toString().length === 1 ? '0' + (now.getDate()).toString() : now.getDate();
+                    hours = now.getHours().toString().length === 1 ? '0' + now.getHours().toString() : now.getHours();
+                    minutes = now.getMinutes().toString().length === 1 ? '0' + now.getMinutes().toString() : now.getMinutes();
+                    formattedDateTime = year + '-' + month + '-' + date + 'T' + hours + ':' + minutes;
+                    console.log(formattedDateTime);
+                    $("#rent_date_time").val(formattedDateTime);
+                })
+            </script>
+        </div>
+        <div class="form-group" style="display: none;"> <!--display:none으로 안 보이게-->
+            <label>대여여부(to be invisible)</label>
+            <input type="checkbox" th:field="*{usingNow}" id="using_now"
+                   th:class="${#fields.hasErrors('usingNow') ? 'form-control is-invalid' : 'form-control'}"/>
+            <div th:if="${#fields.hasErrors('usingNow')}" th:errors="*{usingNow}" class="invalid-feedback"></div>
+            <!--            대여여부가 true로 자동으로 check 되어있도록 함-->
+            <script>
+                $("#using_now").prop('checked',true);
+            </script>
+        </div>
+        <p>요금: 2,000원/시간</p>
+        <div class="form-group clearfix" style="display: none;" id="submit_area">
+            <button type="submit" class="btn btn-primary" id="check_the_input">대여</button>
+        </div><!-- Submit Button -->
+    </form>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+</html>

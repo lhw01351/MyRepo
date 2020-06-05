@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml"
+	  xmlns:font="http://www.w3.org/1999/xhtml">
+
+
+<head th:fragment="site-head">
+	<meta charset="UTF-8" />
+	<title>종로 자전거</title>
+
+	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+	<script src="../js/blog-scripts.js" th:src="@{/js/blog-scripts.js}"></script>
+
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
+	<meta content="" name="keywords">
+	<meta content="" name="description">
+
+	<link th:href="@{/img/favicon.png}" rel="icon">
+	<link th:href="@{/img/apple-touch-icon.png}" rel="apple-touch-icon">
+
+
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,500,600,700,700i|Montserrat:300,400,500,600,700" rel="stylesheet">
+
+	<link th:href="@{/css/lib/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+
+
+	<link th:href="@{/css/lib/font-awesome/css/font-awesome.min.css}" rel="stylesheet">
+	<link th:href="@{/css/lib/animate/animate.min.css}" rel="stylesheet">
+	<link th:href="@{/css/lib/ionicons/css/ionicons.min.css}" rel="stylesheet">
+	<link th:href="@{/css/lib/owlcarousel/assets/owl.carousel.min.css}" rel="stylesheet">
+	<link th:href="@{/css/lib/lightbox/css/lightbox.min.css}" rel="stylesheet">
+
+
+	<link th:href="@{/css/style.css}" rel="stylesheet">
+
+
+</head>
+
+<body>
+<header th:fragment="site-header" th:remove="tag">
+		<header id="header">
+
+			<div id="topbar" align="right" >
+				<div class="container">
+
+					<div id="logged-in-info">
+						<div sec:authorize="isAuthenticated()">
+							<b><span sec:authentication="name"></span>님, 환영합니다! ♥ &nbsp</b>
+							<a href="#" th:href="@{/customer/logout}"><span class="fa fa-sign-out"></span>로그아웃</a>
+						</div>
+
+						<div sec:authorize="!isAuthenticated()">
+							<a href="customer/login.html" th:href="@{/customer/login}">로그인</a>&nbsp&nbsp
+							<a href="customer/register.html" th:href="@{/customer/register}">회원 가입</a>
+						</div>
+					</div>
+					</right>
+
+				</div>
+			</div>
+
+			<div class="container">
+
+				<div class="logo float-left">
+					<h1 class="text-light"><a href="/home" class="scrollto"><span>종로 자전거</span></a></h1>
+				</div>
+
+				<nav class="main-nav float-right d-none d-lg-block" th:fragment="site-nav">
+					<ul>
+						<li class="active"><a href="index.html" th:href="@{/}">Home</a></li>
+						<li><a href="bicycles/bicyclemap.html" th:href="@{/bicycles/map}">자전거 조회</a></li>
+						<li><a href="/admin/notice/index.html" th:href="@{/notice}">공지 게시판</a></li>
+						<li><a href="inquiry/index.html" th:href="@{/inquiry}">문의 게시판</a></li>
+						<li sec:authorize="isAuthenticated()">
+							<a href="bicycles/bicyclelist.html" th:href="@{/bicycles/list}">자전거 목록<br>(관리자용)</a>
+						</li>
+						<li sec:authorize="isAuthenticated()">
+							<a href="customer/index.html" th:href="@{/customer}">회원 목록<br>(관리자용)</a>
+						</li>
+						<li class="drop-down"><a href="">이용안내</a>
+							<ul>
+								<div sec:authorize="isAuthenticated()">
+								<li><a href="#" th:href="@{/customer/logout}">로그아웃</a></li>
+								</div>
+								<div sec:authorize="!isAuthenticated()">
+								<li><a href="customer/login.html" th:href="@{/customer/login}">로그인</a></li>
+								<li><a href="customer/register.html" th:href="@{/customer/register}">회원가입</a></li>
+								</div>
+								<div id="liMenu" style="display: none">
+									<li><a href="#services">대여 안내</a></li>
+									<li><a href="#pricing">안전 수칙</a></li>
+								</div>
+							</ul>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+</header>
+<script th:fragment="site-li">
+	$("#liMenu").show();
+</script>
+<section id="intro" class="clearfix" th:fragment="site-section">
+	<div class="container d-flex h-100">
+		<div class="row justify-content-center align-self-center">
+		</div>
+	</div>
+</section>
+
+<footer th:fragment="site-footer" id="footer" class="section-bg">
+
+
+	<div class="container" style="margin-top: 50px;">
+
+		<div class="credits">
+			<a href="#">Home</a>&nbsp&nbsp
+			<a href="/notice">공지 사항</a>&nbsp&nbsp
+			<a href="/inquiry">문의 사항</a>&nbsp&nbsp
+		</div>
+
+		<div class="copyright">
+			<u>서울특별시 종로구, South Korea</u> <br><br>
+			<u><strong>Phone</strong></u> : 1544-0714 &nbsp&nbsp
+			<u><strong>Email</strong></u> : jongrocycle@gmail.com<br><br>
+			&copy; Copyright <strong>종로 자전거</strong>. All Rights Reserved
+		</div>
+
+	</div>
+	<script th:src="@{/css/lib/jquery/jquery.min.js}"></script>
+	<script th:src="@{/css/lib/jquery/jquery-migrate.min.js}"></script>
+	<script th:src="@{/css/lib/bootstrap/js/bootstrap.bundle.min.js}"></script>
+	<script th:src="@{/css/lib/easing/easing.min.js}"></script>
+	<script th:src="@{/css/lib/mobile-nav/mobile-nav.js}"></script>
+	<script th:src="@{/css/lib/wow/wow.min.js}"></script>
+	<script th:src="@{/css/lib/waypoints/waypoints.min.js}"></script>
+	<script th:src="@{/css/lib/counterup/counterup.min.js}"></script>
+	<script th:src="@{/css/lib/owlcarousel/owl.carousel.min.js}"></script>
+	<script th:src="@{/css/lib/isotope/isotope.pkgd.min.js}"></script>
+	<script th:src="@{/css/lib/lightbox/js/lightbox.min.js}"></script>
+	<script th:src="@{/css/contactform/contactform.js}"></script>
+	<script th:src="@{/js/main.js}"></script>
+
+</footer><!-- #footer -->
+
+</body>
+</html>

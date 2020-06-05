@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="layout::site-head">
+	<meta charset="UTF-8" />
+	<title th:text="${inquiry.title}">게시물 조회</title>
+
+</head>
+<script>
+Date.prototype.toDateInputValue = (function() {
+var local = new Date(this);
+local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+return local.toJSON().slice(0,10);
+});
+$(document).ready(function () {
+$('#this_is_today').val(new Date().toDateInputValue());
+})
+</script>
+<style>
+	#myth th, #myth td
+	{
+	 border:1px
+	 solid silver;
+	 }
+</style>
+
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+	<main id="inquiry">
+		<div class="table-responsive" style="margin: 5% auto; width: 90%;">
+			<table width=1000  cellpadding=2 cellspacing=1 bgcolor=#BEBEBE id="myth" class="table">
+				<input type="hidden" th:field="${inquiry.id}"/>
+				<input type="hidden" th:field="${inquiry.customers}"/>
+				<tr>
+					<td height=20 colspan=4 align=center bgcolor=#BEBEBE>
+						<span><b>제목 : </b></span><font color=black th:text="${inquiry.title}"/></font>
+					</td>
+				</tr>
+				<tr>
+					<td width=50 height=20 align=center bgcolor=#DCDCDC>글쓴이</td>
+					<td width=240 bgcolor=white th:text="${inquiry.customers.customer_name}"></td>
+					<td width=50 height=20 align=center bgcolor=#DCDCDC>이메일</td>
+					<td width=240 bgcolor=white th:text="${inquiry.customers.customerEmail}"></td>
+				</tr>
+				<tr>
+					<td width=50 height=20 align=center bgcolor=#DCDCDC>등록일</td><td width=240 bgcolor=white>
+					<span th:text="${#dates.format(inquiry.reg_date, 'YYYY-MM-dd')}"></span></td>
+					<td width=50 height=20 align=center bgcolor=#DCDCDC>수정일</td><td width=240 bgcolor=white>
+					<span th:text="${#dates.format(inquiry.update_date, 'YYYY-MM-dd')}"></span></td>
+				</tr>
+				<tr>
+					<td bgcolor=white colspan=4>
+						<font color=black>
+							<p></p>
+							<center>
+								<pre class="content" th:utext="${inquiry.content}"></pre>
+							</center>
+							<p></p>
+						</font>
+					</td>
+				</tr>
+				<!-- 기타 버튼 들 -->
+				<tr>
+					<td colspan=4 bgcolor=#BEBEBE>
+						<table width=100% class="table">
+							<tr>
+								<td width=200 align=center height=20>
+									<a th:href="@{'/inquiry'}"><font color="black">[목록보기]&nbsp&nbsp&nbsp</font></a>
+									<a th:href="@{'/inquiry/edit/'+${inquiry.id}}"><font color="black">[수정]&nbsp&nbsp&nbsp</font></a>
+									<a th:href="@{'/inquiry/delete/'+${inquiry.id}}" onclick="confirmDelete()"><font color="black">[삭제]</font></a>
+									<script type="text/javascript">
+										//참고: https://stackoverflow.com/questions/9139075/how-to-show-a-confirm-message-before-delete
+										function confirmDelete(){
+											var x = confirm("삭제하시겠습니까?");
+											if (x){
+												alert("삭제되었습니다.");
+												return true;
+											}
+											else{return false;}
+										}
+									</script>
+								</td>
+							</tr>
+						</table>
+						</b></font>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</main>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+
+</html>

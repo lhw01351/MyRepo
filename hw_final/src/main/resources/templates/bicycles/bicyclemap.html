@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout::site-head">
+    <link rel="stylesheet" href="../static/css/modal.css" th:href="@{../css/modal.css}">
+    <title>자전거 대여하기</title>
+</head>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+<div style="margin-top: 3%;">
+    <h4 style="text-align: center;">현재 위치와 가장 가까운 곳에 있는 자전거를 확인해주세요.</h4>
+    <div style="height:500px;margin:0 3% 3% 3%;">
+        <!-- 현위치 이동용 버튼 -->
+        <button class="btn btn-info" id="go_to_current_position" onclick="move_to_current_coordinate()"
+                style="border: 1px grey solid; border-radius: 5px; display: block; margin: 0 auto;">
+            현위치
+        </button>
+        <div id="map" style="height: 450px; margin: 10px 0 0 5px;"></div>
+        <a class="btn btn-primary"
+           style="border: 1px grey solid; border-radius: 5px; position: relative; display: block; margin: 10px auto; width: 74px;"
+           href="/bicycles/rent">
+            대여
+        </a>
+    </div>
+</div>
+
+<!-- 발급받은 APP KEY를 입력! javascript key가 입력되어야 한다. 반드시 실행 코드보다 먼저 선언 -->
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ce16656897a19f1f12eccf179ee53bad"></script>
+
+<script>
+    //지도를 띄우는 코드
+    var container = document.getElementById('map');
+    var options = {
+        center: new kakao.maps.LatLng(37.570098, 126.983844), //중심좌표
+        level: 4 //지도 축척
+    };
+    var map = new kakao.maps.Map(container, options); // 지도 생성
+
+    // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+    var mapTypeControl = new kakao.maps.MapTypeControl();
+    // 지도에 컨트롤을 추가해야 지도위에 표시됩니다
+    // kakao.maps.ControlPosition은 컨트롤이 표시될 위치를 정의하는데 TOPRIGHT는 오른쪽 위를 의미합니다
+    map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+
+    var zoomControl = new kakao.maps.ZoomControl();
+    map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+    move_to_current_coordinate();
+
+    function move_to_current_coordinate(){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var lat = position.coords.latitude,
+                    lon = position.coords.longitude;
+                var locPosition = new kakao.maps.LatLng(lat, lon);
+                displayMarker(locPosition);
+            });
+        } else {
+            var locPosition = new kakao.maps.LatLng(37.571098, 126.983844);
+            alert('위치정보를 사용할 수 없습니다.');
+            displayMarker(locPosition);
+        }
+        var current_position_icon = 'https://www.stickpng.com/assets/images/58afdad6829958a978a4a693.png',
+            current_position_imageSize = new kakao.maps.Size(15, 15),
+            current_position_imageOption = {offset: new kakao.maps.Point(15, 15)};
+        var current_position_icon_image = new kakao.maps.MarkerImage(current_position_icon, current_position_imageSize, current_position_imageOption);
+        function displayMarker(locPosition, message) {
+            var marker_current_position = new kakao.maps.Marker({
+                map: map,
+                position: locPosition,
+                image: current_position_icon_image
+            });
+            map.setCenter(locPosition);
+        }
+    }
+</script>
+
+<script th:inline="javascript" th:each="b:${bicycles}">
+
+    var bicycle_icon = 'https://image.flaticon.com/icons/svg/1183/1183369.svg';
+    var bicycle_imageSize = new kakao.maps.Size(64, 69);
+    var bicycle_imageOption = {offset: new kakao.maps.Point(27, 69)};
+    var bicycle_icon_image = new kakao.maps.MarkerImage(bicycle_icon, bicycle_imageSize, bicycle_imageOption);
+
+    var bicycleLatitude = [[${b.bicycleLatitude}]];
+    var bicycleLongitude = [[${b.bicycleLongitude}]];
+    var bicycle_coordinate = new kakao.maps.LatLng(bicycleLatitude, bicycleLongitude);
+
+    var bicycle_marker = new kakao.maps.Marker({
+        position: bicycle_coordinate,
+        clickable:true,
+        image: bicycle_icon_image
+    });
+    bicycle_marker.setMap(map);
+
+    var bicycle_id=[[${b.bicycleId}]];
+
+    var iwContent = '<div class="container" style="padding:5px; width:180px; height:100px; text-align:center; font-size: 11px;">'
+        +'<h5 style="font-weight: bold;" id="each_stand_name">자전거 보기</h5>'
+        +'<table class="table">'
+        +'<tr><td>자전거 식별번호</td><td id="each_bicycle_id" style="font-weight: bold;">'+bicycle_id+'</td></tr>'
+        +'</table></div>';
+
+    var iwLatitude = bicycleLatitude;
+    var iwLongitude = bicycleLongitude;
+    var iwPosition = new kakao.maps.LatLng(iwLatitude, iwLongitude),
+        iwRemoveable = true;
+    var infowindow = new kakao.maps.InfoWindow({
+        map: map,
+        position : iwPosition,
+        content : iwContent,
+        removable : iwRemoveable
+    });
+
+    infowindow.close();
+
+    kakao.maps.event.addListener(bicycle_marker, 'click', listener(map, bicycle_marker, infowindow));
+    function listener(map, marker, info_window) {
+        return function() {
+            info_window.open(map, marker);
+        };
+    }
+</script>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+</html>

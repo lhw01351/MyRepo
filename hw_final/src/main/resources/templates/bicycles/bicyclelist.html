@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout::site-head">
+    <link rel="stylesheet" href="../static/css/modal.css" th:href="@{../css/modal.css}"> <!--modal css 가지고오는 부분-->
+    <title>자전거 목록(관리자용)</title>
+</head>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+<div class="container" style="align-items: center;">
+    <button id="delete_message" th:if="${deleteMessage}" class="btn btn-danger" type="button"
+            style="display: block; margin: 0 auto; width: 100%;">
+        <p th:text="${deleteMessage}"></p>
+    </button><br>
+    <script th:inline="javascript" th:if="${deleteMessage}">
+        $("#delete_message").fadeOut(5000,function () {}) //알아서 fade-out
+    </script>
+    <h3 style="margin: auto; text-align: center;">자전거 목록(관리자용)</h3><br>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+            <tr style="text-align: center;">
+                <th>번호</th>
+                <th>기종</th>
+                <th>가격(원)</th>
+                <th>현위치(주소)</th>
+                <th>현위치(위도)</th>
+                <th>현위치(경도)</th>
+                <th>등록일</th>
+                <th>삭제</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="bicycle:${bicycles}" style="text-align: center;">
+                <td th:text="${bicycle.bicycleId}"></td>
+                <td th:text="${bicycle.bicycleModel}"></td>
+                <td th:text="${bicycle.bicyclePrice}"></td>
+                <td th:text="${bicycle.bicycleAddress}"></td>
+                <td th:text="${bicycle.bicycleLatitude}"></td>
+                <td th:text="${bicycle.bicycleLongitude}"></td>
+                <td th:text="${#dates.format(bicycle.bicycleRegDate, 'yyyy-MM-dd')}"></td>
+                <td><button type="button" th:id="'delete_'+${bicycle.bicycleId}" class="btn btn-danger" style="border: 1px grey solid; border-radius: 5px" onclick="ask(this.id)">
+                    삭제</button></td>
+                <!--삭제 질문용 modal을 위한 함수-->
+                <script th:inline="javascript">
+                    function ask(got_id){
+                        var cur_id=got_id.split("_");
+                        var modal = document.getElementById("myModal"+cur_id[1]); // Get the modal.
+                        var btn = document.getElementById(got_id);// Get the button that opens the modal
+                        var span = document.getElementById("close_"+cur_id[1]); // Get the <span> element that closes the modal
+                        var cancel_buttons=document.getElementById("closethemodal_"+cur_id[1]);
+                        modal.style.display = "block"; // When the user clicks on the button, open the modal
+                        span.onclick = function() {// When the user clicks on <span> (x), close the modal
+                            modal.style.display = "none";
+                        }
+                        cancel_buttons.onclick = function() {// When the user clicks on <취소>, close the modal
+                            modal.style.display = "none";
+                        }
+                        window.onclick = function(event) { // When the user clicks anywhere outside of the modal, close it
+                            if (event.target == modal) {
+                                modal.style.display = "none";
+                            }
+                        }
+                    }
+                </script>
+                <!-- The Modal: 삭제용 -->
+                <div th:id="'myModal'+${bicycle.bicycleId}" class="modal" style="position: center; width: 100%; height: 100%; text-align: center;">
+                    <!-- Modal content -->
+                    <div class="modal-content">
+                        <span class="close" th:id="'close_'+${bicycle.bicycleId}">&times;</span>
+                        <p>자전거를 삭제하시겠습니까?</p>
+                        <button type="button" class="btn btn-light" style="border: 1px grey solid; border-radius: 5px">
+                            <a th:href="@{'/bicycle/delete/'+${bicycle.bicycleId}}">삭제</a></button>
+                        <button type="button" th:id="'closethemodal_'+${bicycle.bicycleId}" class="btn btn-light" style="border: 1px grey solid; border-radius: 5px">
+                            취소</button>
+                    </div>
+                </div>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <a class="btn btn-success" href="/bicycles/add" th:href="@{/bicycles/add}" style="border: 1px grey solid; border-radius: 5px; float: right; color: white;">
+        자전거 추가
+    </a>
+    <!-- pagination -->
+    <!--만들 때 참조한 링크: https://attacomsian.com/blog/spring-boot-thymeleaf-pagination-->
+    <nav aria-label="Pagination" th:if="${bicycles.totalPages gt 0}">
+        <ul class="pagination justify-content-center font-weight-medium">
+            <li class="page-item" th:classappend="${bicycles.number eq 0} ? 'disabled'">
+                <a class="page-link svg-icon"
+                   th:href="@{/bicycles/list?page={id}(id=${bicycles.number lt 2 ? 1 : bicycles.number})}"
+                   aria-label="Previous"
+                   title="이전 페이지" rel="tooltip">
+                    <span aria-hidden="true" data-feather="chevrons-left" width="20" height="20">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${i eq bicycles.number + 1} ? 'active'"
+                th:each="i : ${#numbers.sequence( bicycles.number + 1, bicycles.totalPages > 10 + bicycles.number ? bicycles.number + 10 : bicycles.totalPages, 1)}">
+                <a class="page-link" th:href="@{/bicycles/list?page={id}(id=${i})}" th:text="${i}"
+                   th:title="${'Page '+ i}"
+                   rel="tooltip"></a>
+            </li>
+            <li class="page-item disabled" th:if="${bicycles.number + 10 < bicycles.totalPages}">
+                <a class="page-link svg-icon" href="#">
+                    <span data-feather="more-horizontal" width="20" height="20">…</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${bicycles.number + 1 eq bicycles.totalPages} ? 'disabled'">
+                <a class="page-link" th:if="${bicycles.number + 1 eq bicycles.totalPages}" href="#">
+                    <span aria-hidden="true" data-feather="chevrons-right" width="20" height="20">&raquo;</span>
+                </a>
+                <a class="page-link svg-icon" th:href="@{/bicycles/list?page={id}(id=${bicycles.number + 2})}"
+                   aria-label="Next"
+                   title="다음 페이지" rel="tooltip" th:styleappend="${bicycles.number + 1 eq bicycles.totalPages}?'display: none'">
+                    <!--styleappend: 마지막 페이지일 경우 다음 페이지로 넘어가는 버튼이  안 보이도록.-->
+                    <span aria-hidden="true" data-feather="chevrons-right" width="20" height="20">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head th:replace="layout::site-head">
+	<meta charset="UTF-8">
+	<title>문의 게시판</title>
+</head>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+<div class="container">
+	<button id="delete_message" th:if="${deleteMessage}" class="btn btn-danger" type="button"
+			style="display: block; margin: 0 auto; width: 100%;">
+		<p th:text="${deleteMessage}"></p>
+	</button><br>
+	<script th:inline="javascript" th:if="${deleteMessage}">
+		$("#delete_message").fadeOut(5000,function () {}) //알아서 fade-out
+	</script>
+	<span sec:authentication="name" style="display:none;"></span>
+	<div class="page-header" style="text-align: center;">
+		<h1>문의 게시판</h1>
+	</div>
+	<div class="pull-right" style="width:100px;margin:10px 0;">
+		<a href="/inquiry/create" class="btn btn-primary btn-block">등록</a>
+	</div>
+	<div>
+		<table class="table">
+			<thead>
+			<tr>
+				<th>#</th>
+				<th>제목</th>
+				<th>작성자</th>
+				<th>등록일</th>
+				<th>수정일</th>
+				<th>수정</th>
+				<th>삭제</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr th:each="i : ${inquiry}">
+				<td th:text="${i.id}"></td>
+				<td><a th:href="@{/inquiry/view/{id}/(id=${i.id})}" th:text="${i.title}"></a></td>
+				<div id="authId"><td th:text="${i.customers.customerId}"></td></div>
+				<td th:text="${#dates.format(i.reg_date,'yyyy-MM-dd')}"></td>
+				<td th:text="${#dates.format(i.update_date,'yyyy-MM-dd')}"></td>
+				<td><div id="modify1">
+					<a th:href="@{'/inquiry/edit/'+${i.id}}">
+						<button type="button" class="btn btn-info" style="border: 1px grey solid; border-radius: 5px" onclick="ask(this.id)">수정</button>
+					</a></div></td>
+				<td><div id="delete1"><button type="button" th:id="'delete_'+${i.id}" class="btn btn-danger" style="border: 1px grey solid; border-radius: 5px" onclick="ask(this.id)">
+					삭제</button></a></div></td>
+				<script th:inline="javascript">
+					function ask(got_id){
+						var cur_id=got_id.split("_");
+						var modal = document.getElementById("myModal"+cur_id[1]); // Get the modal.
+						var btn = document.getElementById(got_id);// Get the button that opens the modal
+						var span = document.getElementById("close_"+cur_id[1]); // Get the <span> element that closes the modal
+						var cancel_buttons=document.getElementById("closethemodal_"+cur_id[1]);
+						modal.style.display = "block"; // When the user clicks on the button, open the modal
+						span.onclick = function() {// When the user clicks on <span> (x), close the modal
+							modal.style.display = "none";
+						}
+						cancel_buttons.onclick = function() {// When the user clicks on <취소>, close the modal
+							modal.style.display = "none";
+						}
+						window.onclick = function(event) { // When the user clicks anywhere outside of the modal, close it
+							if (event.target == modal) {
+								modal.style.display = "none";
+							}
+						}
+					}
+				</script>
+				<!-- The Modal: 삭제용 -->
+				<div th:id="'myModal'+${i.id}" class="modal" style="position: center; width: 100%; height: 100%; text-align: center;">
+					<!-- Modal content -->
+					<div class="modal-content">
+						<span class="close" th:id="'close_'+${i.id}">&times;</span>
+						<p>게시물을 삭제하시겠습니까?</p>
+						<button type="button" class="btn btn-light" style="border: 1px grey solid; border-radius: 5px">
+							<a th:href="@{'/inquiry/delete/'+${i.id}}">삭제</a></button>
+						<button type="button" th:id="'closethemodal_'+${i.id}" class="btn btn-light" style="border: 1px grey solid; border-radius: 5px">
+							취소</button>
+					</div>
+				</div>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<ul class="pagination justify-content-center">
+				<li th:class="${inquiry.number eq 0} ? 'page-item disabled' : 'page-item'">
+					<a class="page-link" th:if="${not inquiry.first}" th:href="@{${'/inquiry'}(page=${inquiry.number-1})}">&laquo;</a>
+					<a class="page-link" th:if="${inquiry.first}" href="#">&laquo;</a>
+				</li>
+				<li th:each="pageNo : ${#numbers.sequence(0, inquiry.totalPages - 1)}" th:class="${inquiry.number eq pageNo} ? 'page-item active' : 'page-item'">
+					<a class="page-link" th:if="${inquiry.number  eq pageNo}" href="#">
+						<span th:text="${pageNo + 1}"></span>
+					</a>
+					<a class="page-link" th:if="${not (inquiry.number  eq pageNo)}" th:href="@{${'/inquiry'}(page=${pageNo})}">
+						<span th:text="${pageNo + 1}"></span>
+					</a>
+				</li>
+				<li th:class="${inquiry.number + 1 ge inquiry.totalPages} ? 'page-item disabled' : 'page-item'">
+					<a class="page-link" th:if="${not inquiry.last}" th:href="@{${'/inquiry'}(page=${inquiry.number+1})}">&raquo;</a>
+					<a class="page-link" th:if="${inquiry.last}" href="#">&raquo;</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+</html>

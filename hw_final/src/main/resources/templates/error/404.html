@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:replace="layout::site-head">
+    <meta charset="UTF-8">
+    <title>404 Error</title>
+</head>
+<body>
+<header th:replace="layout::site-header"></header>
+<section th:replace="layout::site-section"></section>
+<div>
+    <p style="text-align: center;">404 Error</p>
+    <div class="container">
+        <div class="hidden-xs text-center"><img th:src="@{/img/404.png}" src="../../static/img/404.png"/></div>
+        <div class="text-center">
+            <div><h2>You are not allowed to see this content</h2></div>
+        </div>
+    </div><!-- ./ container -->
+</div>
+<footer th:replace="layout::site-footer"></footer>
+</body>
+</html>
